@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Event;
 use App\Models\Category;
+use App\Models\Transaction;
 
 class EventController extends Controller
 {
@@ -18,9 +19,9 @@ class EventController extends Controller
         return view('checkout');
     }
 
-    public function ticket()
+    public function ticket(Transaction $transaction)
     {
-        return view('ticket');
+        return view('ticket', compact('transaction'));
     }
 
     public function indexAdmin()
@@ -28,9 +29,10 @@ class EventController extends Controller
         return view('admin.events');
     }
 
-    public function show()
+    public function show(Event $event)
     {
-        return view('event');
+        $categories = Category::all();
+        return view('event-detail', compact('categories', 'event'));
     }
 
     public function destroy(Event $event)
