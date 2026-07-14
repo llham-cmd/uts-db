@@ -16,6 +16,8 @@ Route::get('/events/{event}', [\App\Http\Controllers\EventController::class, 'sh
 Route::get('/checkout/{event}', [App\Http\Controllers\CheckoutController::class, 'create'])->name('checkout.create');
 Route::post('/checkout/{event}', [App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/my-ticket/{transaction}', [EventController::class, 'ticket'])->name('ticket');
+Route::get('/payment/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'payment'])->name('checkout.payment');
+Route::get('/success/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
 
 Route::get('/login', fn() => redirect()->route('admin.login'))->name('login');
 
