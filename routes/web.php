@@ -18,6 +18,7 @@ Route::post('/checkout/{event}', [App\Http\Controllers\CheckoutController::class
 Route::get('/my-ticket/{transaction}', [EventController::class, 'ticket'])->name('ticket');
 Route::get('/payment/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'payment'])->name('checkout.payment');
 Route::get('/success/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
+Route::post('/midtrans/callback', [\App\Http\Controllers\MidtransWebhookController::class, 'handle']);
 
 Route::get('/login', fn() => redirect()->route('admin.login'))->name('login');
 
