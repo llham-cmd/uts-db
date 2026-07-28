@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\PartnerController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\JabatanController;
+use App\Http\Controllers\PengurusController;
 
 // ─── USER AREA ────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -49,3 +51,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     }); 
 
 }); 
+
+Route::resource('jabatan', JabatanController::class);
+Route::resource('pengurus', PengurusController::class)->parameters([
+    'pengurus' => 'pengurus',
+]);
