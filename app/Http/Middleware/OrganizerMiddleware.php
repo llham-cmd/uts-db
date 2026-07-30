@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminMiddleware
+class OrganizerMiddleware
 {
     /**
      * Handle an incoming request.
@@ -16,8 +16,15 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
+        $user = Auth::user();
+
+        if (!$user || !$user->isOrganizer()) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+
+        // Kalau organizer belum di-approve superadmin, arahkan ke halaman menunggu
+        if (!$user->organizer || !$user->organizer->is_approved) {
+            return redirect()->route('organizer.pending');
         }
 
         return $next($request);

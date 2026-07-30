@@ -32,15 +32,28 @@
             <span class="text-xl font-bold tracking-tight">AmikomEventHub</span>
         </div>
         <div class="hidden md:flex gap-8 font-medium">
-            <a href="#" class="text-indigo-600">Jelajahi</a>
-            <a href="#" class="hover:text-indigo-600 transition">Kategori</a>
-            <a href="#" class="hover:text-indigo-600 transition">Tentang Kami</a>
-        </div>
-        <!-- <div class="flex gap-3">
-            <button class="px-5 py-2.5 rounded-xl font-semibold hover:bg-slate-200 transition">Login</button>
-            <button
-                class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Daftar</button>
-        </div> -->
+    <a href="{{ route('home') }}" class="text-indigo-600">Jelajahi</a>
+    <a href="#" class="hover:text-indigo-600 transition">Kategori</a>
+    <a href="#" class="hover:text-indigo-600 transition">Tentang Kami</a>
+    @auth
+        <a href="{{ route('tickets.mine') }}" class="hover:text-indigo-600 transition">Tiket Saya</a>
+    @endauth
+</div>
+        <div class="flex items-center gap-3">
+    @auth
+        <span class="hidden sm:inline font-semibold text-slate-600">Hi, {{ Auth::user()->name }}</span>
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit"
+                class="px-5 py-2.5 rounded-xl font-semibold hover:bg-slate-200 transition">Logout</button>
+        </form>
+    @else
+        <a href="{{ route('login') }}"
+            class="px-5 py-2.5 rounded-xl font-semibold hover:bg-slate-200 transition">Login</a>
+        <a href="{{ route('register') }}"
+            class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Daftar</a>
+    @endauth
+</div>
     </nav>
 @yield('content')
 

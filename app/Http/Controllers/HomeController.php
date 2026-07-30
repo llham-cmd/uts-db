@@ -18,10 +18,12 @@ class HomeController extends Controller
 
         // 3. Buat kueri dasar untuk mengambil event:
         // - Eager loading relasi `category`
-        // - Hanya tampilkan event yang belum kedaluwarsa (>= hari ini)
+        // - Hanya tampilkan event yang belum kedaluwarsa (tanggalnya >= hari ini)
+        //   Pakai whereDate() supaya event di hari ini tetap muncul
+        //   sepanjang hari, tidak langsung hilang begitu jam berganti
         // - Urutkan berdasarkan tanggal terdekat
         $query = Event::with('category')
-                      ->where('date', '>=', now())
+                      ->whereDate('date', '>=', now()->toDateString())
                       ->orderBy('date', 'asc');
 
         // 4. Filter berdasarkan kategori jika ada parameter ?category= di URL

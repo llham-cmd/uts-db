@@ -24,6 +24,35 @@ class EventController extends Controller
         return view('ticket', compact('transaction'));
     }
 
+    // Daftar semua event yang pernah dibeli user yang sedang login,
+// termasuk event yang sudah kadaluarsa & hilang dari listing Home,
+// supaya user tetap bisa menemukan & memberi rating tanpa harus
+// tahu URL/ID event-nya secara manual.
+public function myTickets()
+{
+    $user = auth()->user();
+
+    $transactions = Transaction::with(['event.reviews'])
+        ->where('customer_email', $user->email)
+        ->whereIn('status', ['success', 'settlement', 'capture'])
+        ->latest()
+        ->get();
+
+    // Satu user bisa punya beberapa transaksi untuk event yang sama,
+    // jadi ambil event unik saja lalu urutkan dari yang terbaru
+    $events = $transactions->pluck('event')
+        ->filter()
+        ->unique('id')
+        ->sortByDesc('date')
+        ->map(function ($event) use ($user) {
+            $event->already_reviewed = $event->reviews->contains('user_id', $user->id);
+            $event->can_review = $event->isReviewable() && ! $event->already_reviewed;
+            return $event;
+        });
+
+    return view('my-tickets', compact('events'));
+}
+
     public function indexAdmin()
     {
         return view('admin.events');
@@ -32,7 +61,26 @@ class EventController extends Controller
     public function show(Event $event)
     {
         $categories = Category::all();
-        return view('event-detail', compact('categories', 'event'));
+
+        $event->load(['organizer', 'reviews' => function ($q) {
+            $q->with('user')->latest();
+        }]);
+
+        $canReview = false;
+        $alreadyReviewed = false;
+
+        if (auth()->check()) {
+            $alreadyReviewed = $event->reviews->contains('user_id', auth()->id());
+
+            $isBuyer = Transaction::where('event_id', $event->id)
+                ->where('customer_email', auth()->user()->email)
+                ->whereIn('status', ['success', 'settlement', 'capture'])
+                ->exists();
+
+            $canReview = $event->isReviewable() && $isBuyer && ! $alreadyReviewed;
+        }
+
+        return view('event-detail', compact('categories', 'event', 'canReview', 'alreadyReviewed'));
     }
 
     public function destroy(Event $event)

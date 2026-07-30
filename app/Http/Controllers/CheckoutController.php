@@ -33,6 +33,38 @@ class CheckoutController extends Controller
 
         // 3. Generate Kode TRX (Unik)
         $orderId = 'TRX-' . time() . '-' . Str::random(5);
+
+        // ─── BYPASS UNTUK ACARA GRATIS (harga Rp 0) ──────────────────
+        // Kalau harga tiket diatur Rp 0, alur Midtrans dilewati sepenuhnya:
+        // transaksi langsung ditandai sukses, stok langsung dikurangi,
+        // E-Tiket langsung dikirim, dan pembeli langsung diarahkan ke
+        // halaman sukses tanpa pernah menyentuh halaman pembayaran.
+        if ((float) $event->price <= 0) {
+            $transaction = Transaction::create([
+                'event_id' => $event->id,
+                'order_id' => $orderId,
+                'customer_name' => $request->customer_name,
+                'customer_email' => $request->customer_email,
+                'customer_phone' => $request->customer_phone,
+                'total_price' => 0,
+                'status' => 'success',
+            ]);
+
+            // Kurangi stok tiket saat itu juga
+            $event->decrement('stock');
+
+            // Kirim E-Tiket langsung, tanpa menunggu webhook Midtrans
+            try {
+                \Illuminate\Support\Facades\Mail::to($transaction->customer_email)
+                    ->send(new \App\Mail\EventTicketMail($transaction));
+            } catch (\Exception $e) {
+                \Log::error('Gagal mengirim email E-Ticket untuk acara gratis: ' . $e->getMessage());
+            }
+
+            return redirect()->route('checkout.success', $transaction->order_id);
+        }
+
+        // ─── ACARA BERBAYAR: LANJUT KE ALUR MIDTRANS SEPERTI BIASA ───
         $totalPrice = $event->price + 5000; // Menambahkan biaya admin (dummy)
 
         // 4. Merekam Transaksi ke Database
@@ -47,8 +79,8 @@ class CheckoutController extends Controller
         ]);
 
         // --- INTEGRASI SNAP MIDTRANS ---
-        \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        \Midtrans\Config::$isProduction = false; // Mode Sandbox!
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production', false);
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
@@ -91,9 +123,16 @@ class CheckoutController extends Controller
 
         $transaction = Transaction::with('event')->where('order_id', $order_id)->firstOrFail();
 
+        // Kalau transaksi ini sudah 'success' (misalnya hasil bypass acara
+        // gratis), tidak perlu cek ke API Midtrans sama sekali — order_id
+        // ini memang tidak pernah terdaftar di Midtrans.
+        if (strtolower($transaction->status) === 'success') {
+            return view('checkout.success', compact('transaction', 'categories'));
+        }
+
         // Konfigurasi Midtrans untuk mengecek status transaksi langsung ke API
-        \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        \Midtrans\Config::$isProduction = false;
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production', false);
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 

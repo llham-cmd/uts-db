@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Ticket - AmikomEventHub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -103,24 +104,7 @@
                         <div class="bg-slate-100 p-6 rounded-3xl flex flex-col items-center">
                             <p class="text-slate-400 text-xs font-bold uppercase mb-4">Scan QR untuk Check-in</p>
                             <div class="w-48 h-48 bg-white p-4 rounded-xl shadow-inner flex items-center justify-center">
-                                <div class="w-full h-full border-4 border-slate-900 flex flex-wrap p-1">
-                                    <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                    <div class="w-1/4 h-1/4 bg-white"></div>
-                                    <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                    <div class="w-1/4 h-1/4 bg-white"></div>
-                                    <div class="w-1/4 h-1/4 bg-white"></div>
-                                    <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                    <div class="w-1/4 h-1/4 bg-white"></div>
-                                    <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                    <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                    <div class="w-1/4 h-1/4 bg-white"></div>
-                                    <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                    <div class="w-1/4 h-1/4 bg-white"></div>
-                                    <div class="w-1/4 h-1/4 bg-white"></div>
-                                    <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                    <div class="w-1/4 h-1/4 bg-white"></div>
-                                    <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                </div>
+                                <div class="qr-code-target" data-ticket-code="{{ $transaction->ticket_code }}"></div>
                             </div>
                             <p class="mt-4 font-mono font-bold text-slate-800">{{ $transaction->order_id }}</p>
                         </div>
@@ -181,24 +165,7 @@
                     <div class="bg-slate-100 p-6 rounded-3xl flex flex-col items-center">
                         <p class="text-slate-400 text-xs font-bold uppercase mb-4">Scan QR untuk Check-in</p>
                         <div class="w-48 h-48 bg-white p-4 rounded-xl shadow-inner flex items-center justify-center">
-                            <div class="w-full h-full border-4 border-slate-900 flex flex-wrap p-1">
-                                <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                <div class="w-1/4 h-1/4 bg-white"></div>
-                                <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                <div class="w-1/4 h-1/4 bg-white"></div>
-                                <div class="w-1/4 h-1/4 bg-white"></div>
-                                <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                <div class="w-1/4 h-1/4 bg-white"></div>
-                                <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                <div class="w-1/4 h-1/4 bg-white"></div>
-                                <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                <div class="w-1/4 h-1/4 bg-white"></div>
-                                <div class="w-1/4 h-1/4 bg-white"></div>
-                                <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                                <div class="w-1/4 h-1/4 bg-white"></div>
-                                <div class="w-1/4 h-1/4 bg-slate-900"></div>
-                            </div>
+                            <div class="qr-code-target" data-ticket-code="{{ $transaction->ticket_code }}"></div>
                         </div>
                         <p class="mt-4 font-mono font-bold text-slate-800">{{ $transaction->order_id }}</p>
                     </div>
@@ -226,6 +193,20 @@
         }, 5000);
     </script>
     @endif
+
+    <script>
+        // Render QR code asli (berisi ticket_code) ke setiap target yang ada di halaman.
+        // Dipakai scanner check-in panitia untuk verifikasi & anti double-entry.
+        document.querySelectorAll('.qr-code-target').forEach(function (el) {
+            new QRCode(el, {
+                text: el.dataset.ticketCode,
+                width: 176,
+                height: 176,
+                colorDark: '#0f172a',
+                colorLight: '#ffffff',
+            });
+        });
+    </script>
 
 </body>
 
